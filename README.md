@@ -11,7 +11,9 @@
 
 ### 1. Project Overview
 Author: Hoin Kim
+
 Course: Mobile Computing and Its Applications (Spring 2026)
+
 This project is a mini-project for the Mobile Computing and Its Applications course. It focuses on developing an intelligent, motion-based rhythm game that leverages distributed mobile sensors.
 
 ---
