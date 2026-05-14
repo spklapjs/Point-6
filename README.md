@@ -5,7 +5,7 @@
 * [SDLC Specification](./docs/01_SDLC_Specification.md)
 * [System Architecture](./docs/02_System_Architecture.md)
 * [Functional Requirements](./docs/03_Functional_Requirements.md)
-* [UI/UX Design v1.1](./docs/04_UI_UX_Design_v1.1.md)
+* [UI/UX Design](./docs/04_UI_UX_Design.md)
 
 ---
 
