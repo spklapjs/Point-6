@@ -1,4 +1,4 @@
-# Functional Requirements Specification
+# Point6 Functional Requirements Specification
 
 ### Version History
 
