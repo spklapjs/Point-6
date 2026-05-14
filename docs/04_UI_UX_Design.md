@@ -2,8 +2,8 @@
 
 ## Version History
 
-| Version | Date | Description|
-| --- | --- | --- | --- |
+| Version | Date | Remarks |
+| --- | --- | --- |
 | 1.0 | 2024-05-14 | Initial release |
 
 ## 1. Design Principles: Non-Visual Dominance
