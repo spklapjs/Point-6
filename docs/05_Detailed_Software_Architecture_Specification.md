@@ -5,47 +5,66 @@
 | Version | Date | Remarks |
 | --- | --- | --- |
 | 1.0 | 2024-05-17 | Initial release |
+| 1.1 | 2026-05-17 | Added Logger package and ai_model pipeline structure |
 
 ## 1. Project Directory Structure
 
 ```text
-com.spklapjs.point6
-├── data
-│   ├── sensor
-│   │   ├── SPenManager.kt
-│   │   ├── BudsManager.kt
-│   │   └── PhoneSensorManager.kt
-│   ├── audio
-│   │   └── AssetAudioSource.kt
-│   └── repository
-│       └── SensorRepositoryImpl.kt
-├── domain
-│   ├── model
-│   │   ├── SensorWindow.kt
-│   │   └── DrumType.kt
-│   ├── repository
-│   │   └── SensorRepository.kt
-│   ├── usecase
-│   │   ├── DataSyncUseCase.kt
-│   │   └── GetInferenceUseCase.kt
-│   ├── ai
-│   │   └── InferenceEngine.kt
-│   └── game
-│       ├── BeatManager.kt
-│       ├── CalibrationManager.kt
-│       └── JudgeManager.kt
-└── presentation
-    ├── view
-    │   ├── MainActivity.kt
-    │   ├── CalibrationActivity.kt
-    │   ├── PlayActivity.kt
-    │   └── StageSelectActivity.kt
-    ├── viewmodel
-    │   ├── MainViewModel.kt
-    │   └── GameViewModel.kt
-    └── feedback
-        ├── SpatialAudioEngine.kt
-        └── HapticController.kt
+point6
+├── ai_model
+│   ├── data
+│   │   ├── raw
+│   │   └── processed
+│   ├── notebooks
+│   │   ├── 01_data_preprocessing.ipynb
+│   │   ├── 02_model_training.ipynb
+│   │   └── 03_model_optimization.ipynb
+│   ├── src
+│   │   ├── dataset.py
+│   │   ├── models.py
+│   │   └── utils.py
+│   ├── checkpoints
+│   └── exported_models
+└── app
+    └── src/main/java/com/spklapjs/point6
+        ├── data
+        │   ├── sensor
+        │   │   ├── SPenManager.kt
+        │   │   ├── BudsManager.kt
+        │   │   └── PhoneSensorManager.kt
+        │   ├── audio
+        │   │   └── AssetAudioSource.kt
+        │   └── repository
+        │       └── SensorRepositoryImpl.kt
+        ├── domain
+        │   ├── model
+        │   │   ├── SensorWindow.kt
+        │   │   └── DrumType.kt
+        │   ├── repository
+        │   │   └── SensorRepository.kt
+        │   ├── usecase
+        │   │   ├── DataSyncUseCase.kt
+        │   │   └── GetInferenceUseCase.kt
+        │   ├── ai
+        │   │   └── InferenceEngine.kt
+        │   └── game
+        │       ├── BeatManager.kt
+        │       ├── CalibrationManager.kt
+        │       └── JudgeManager.kt
+        └── presentation
+            ├── view
+            │   ├── MainActivity.kt
+            │   ├── CalibrationActivity.kt
+            │   ├── PlayActivity.kt
+            │   ├── StageSelectActivity.kt
+            │   └── LoggerActivity.kt
+            ├── viewmodel
+            │   ├── MainViewModel.kt
+            │   ├── GameViewModel.kt
+            │   └── LoggerViewModel.kt
+            └── feedback
+                ├── SpatialAudioEngine.kt
+                └── HapticController.kt
 ```
 
 
@@ -116,15 +135,49 @@ The main interactive gameplay screen that renders visual performance feedback an
 view/StageSelectActivity.kt
 The navigation screen enabling users to choose music stages, preview tracks, and select difficulty levels.
 
+view/LoggerActivity.kt
+Provides a dedicated developer dashboard to facilitate safe dataset acquisition. Includes action controllers for logging state modifications and dropdown menus to label targets.
+
 viewmodel/MainViewModel.kt
 Manages the UI state, background tasks, and validation rules for device connectivity and pre-game setups.
 
 viewmodel/GameViewModel.kt
 Controls the active game loop state, tracks score accumulation, processes real-time sensor windows, and triggers immediate multi-sensory feedback events.
 
+viewmodel/LoggerViewModel.kt
+Interacts with SensorRepository to fetch streaming data and handles local file output processes to export synchronized data blocks.
+
 feedback/SpatialAudioEngine.kt
 A native C++ JNI wrapper using the Google Oboe library to deliver low-latency, 3D spatialized sound feedback corresponding to head movements.
 
 feedback/HapticController.kt
 Controls precise Android Vibrator attributes to output distinct tactile vibration patterns for performance indicators and errors.
+```
+
+### AI Model Pipeline Layer
+The ai_model folder encapsulates the complete deep learning lifecycle from data preparation to optimization.
+```text
+data/raw/
+Contains original multi-device sensor recordings generated by LoggerActivity in comma-separated values format.
+
+data/processed/
+Stores segmented time-series data windows partitioned based on magnitude peak detection criteria, ready for network training.
+
+notebooks/01_data_preprocessing.ipynb
+Cloud-ready execution script for data parsing, sample interpolation, peak filtering, and sequential feature matrix partitioning.
+
+notebooks/02_model_training.ipynb
+Configures the CNN-LSTM hybrid neural network architecture using PyTorch and monitors convergence metrics.
+
+notebooks/03_model_optimization.ipynb
+Implements channel pruning matrices and INT8 linear quantization operations, exporting final models into compressed formats.
+
+src/dataset.py
+Inherits from the PyTorch Dataset class to efficiently index windowed motion features and sequence labels.
+
+src/models.py
+Declares structural parameters for spatial feature extractions and temporal sequence operations.
+
+src/utils.py
+Contains utility functions for data visualizations, matrix evaluations, and format transformations.
 ```
