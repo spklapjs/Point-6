@@ -1,5 +1,11 @@
 # 05_Detailed_Software_Architecture_Specification
 
+## Version History
+
+| Version | Date | Remarks |
+| --- | --- | --- |
+| 1.0 | 2024-05-17 | Initial release |
+
 ## 1. Project Directory Structure
 
 ```text
