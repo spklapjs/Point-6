@@ -26,7 +26,7 @@ point6
 │   ├── checkpoints
 │   └── exported_models
 └── app
-    └── src/main/java/com/spklapjs/point6
+    └── src/main/java/com/spklapjs/point_6
         ├── data
         │   ├── sensor
         │   │   ├── SPenManager.kt
