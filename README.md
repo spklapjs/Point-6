@@ -6,6 +6,7 @@
 * [System Architecture](./docs/02_System_Architecture.md)
 * [Functional Requirements](./docs/03_Functional_Requirements.md)
 * [UI/UX Design](./docs/04_UI_UX_Design.md)
+* [Detailed Software Architecture Specification](./docs/05_Detailed_Software_Architecture_Specification.md)
 
 ---
 
