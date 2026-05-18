@@ -29,6 +29,7 @@ point6
     └── src/main/java/com/spklapjs/point_6
         ├── data
         │   ├── sensor
+        │   │   ├── SensorData.kt
         │   │   ├── SPenManager.kt
         │   │   ├── BudsManager.kt
         │   │   └── PhoneSensorManager.kt
@@ -72,6 +73,9 @@ point6
 
 ### Data Layer
 The data layer is responsible for direct hardware communication, low-level API handling, and raw resource management.
+
+sensor/SensorData.kt
+* SensorData is a unified data structure responsible for encapsulating and managing the raw 18-axis sensor data and timestamps collected from the smartphone, S-Pen, and Galaxy Buds.
 
 sensor/SPenManager.kt
 * Integrates the Samsung S-Pen Remote SDK to capture raw button events and inertial sensor streams from the stylus.
