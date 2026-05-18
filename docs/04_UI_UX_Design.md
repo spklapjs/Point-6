@@ -38,7 +38,6 @@
 
 ### 3.3. Game Play Screen
 
-- Combo Removal: Removed to reduce the visual burden on the player.
 - Core Feedback Elements:
   1. Background Color Feedback: The entire screen flashes green (perfect), orange (good), or red with vibration (miss) based on the judgment.
   2. Pattern Guide: The current pattern and the next pattern are displayed concisely at the top with icons or text.
