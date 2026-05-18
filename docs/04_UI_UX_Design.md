@@ -1,49 +1,155 @@
-# point-6 UI UX Design Specification
+# 05_Detailed_Software_Architecture_Specification
 
-### Version History
+## Version History
 
 | Version | Date | Remarks |
 | --- | --- | --- |
-| 1.0 | 2026-05-14 | Initial release |
-| 1.1 | 2026-05-14 | Updated stage selection and simplified play screen |
-| 1.2 | 2026-05-18 | Updated for 8-axis system and removed spatial audio |
+| 1.0 | 2026-05-17 | Initial release |
+| 1.1 | 2026-05-17 | Added Logger package and ai_model pipeline structure |
+| 1.2 | 2026-05-18 | Updated for 8-axis system, removed BudsManager and spatial audio |
 
-### 1. Design Principles: Non-Visual Dominance
+## 1. Project Directory Structure
 
-- Visual Subordination: Since the user cannot read detailed text on the screen while swinging the device, color, haptic, and audio are used as the primary feedback methods.
-- Simplicity: Minimize complex button operations and screen elements to focus on the essential rhythm of the game.
+```text
+point-6
+├── ai_model
+│   ├── data
+│   │   ├── raw
+│   │   └── processed
+│   ├── notebooks
+│   │   ├── 01_data_preprocessing.ipynb
+│   │   ├── 02_model_training.ipynb
+│   │   └── 03_model_optimization.ipynb
+│   ├── src
+│   │   ├── dataset.py
+│   │   ├── models.py
+│   │   └── utils.py
+│   ├── checkpoints
+│   └── exported_models
+└── app
+    └── src/main/java/com/spklapjs/point_6
+        ├── data
+        │   ├── sensor
+        │   │   ├── SensorData.kt
+        │   │   ├── SPenManager.kt
+        │   │   └── PhoneSensorManager.kt
+        │   ├── audio
+        │   │   └── AssetAudioSource.kt
+        │   └── repository
+        │       └── SensorRepositoryImpl.kt
+        ├── domain
+        │   ├── model
+        │   │   ├── SensorWindow.kt
+        │   │   └── DrumType.kt
+        │   ├── repository
+        │   │   └── SensorRepository.kt
+        │   ├── usecase
+        │   │   ├── DataSyncUseCase.kt
+        │   │   └── GetInferenceUseCase.kt
+        │   ├── ai
+        │   │   └── InferenceEngine.kt
+        │   └── game
+        │       ├── BeatManager.kt
+        │       ├── CalibrationManager.kt
+        │       └── JudgeManager.kt
+        └── presentation
+            ├── view
+            │   ├── MainActivity.kt
+            │   ├── CalibrationActivity.kt
+            │   ├── PlayActivity.kt
+            │   ├── StageSelectActivity.kt
+            │   └── LoggerActivity.kt
+            ├── viewmodel
+            │   ├── MainViewModel.kt
+            │   ├── GameViewModel.kt
+            │   └── LoggerViewModel.kt
+            └── feedback
+                ├── AudioEngine.kt
+                └── HapticController.kt
+```
+## 2. Component Descriptions and Responsibilities
 
-### 2. Main Screen Flow
+###Data Layer
+The data layer is responsible for direct hardware communication, low-level API handling, and raw resource management.
+```text
+* sensor/SensorData.kt
+SensorData is a unified data structure responsible for encapsulating and managing the raw 8-axis sensor data and timestamps collected from the smartphone and S-Pen.
+* sensor/SPenManager.kt
+Integrates the Samsung S-Pen Remote SDK to capture raw button events and inertial sensor streams from the stylus.
+* sensor/PhoneSensorManager.kt
+Accesses the Android SensorManager to extract high-frequency IMU data from the internal smartphone accelerometer and gyroscope.
+* audio/AssetAudioSource.kt
+Manages raw audio assets, including background music tracks and specific drum sound effects stored in the application assets.
+* repository/SensorRepositoryImpl.kt
+Implements the unified sensor data collection interface, serving as the central hub for gathering raw streams from the two device managers.
+```
 
-| Order | Screen Name | Key Features and UI Elements |
-| --- | --- | --- |
-| 01 | Main Home | Game start button, settings (difficulty, vibration, sound), smartphone and S-Pen connection status icon. |
-| 02 | Calibration | Guidance for standing by with both hands (smartphone and S-Pen), and zero adjustment button. |
-| 03 | Stage Selection | Horizontal scroll type stage list, free mode entry button at the top right. |
-| 04 | Game Play | Full screen color feedback, current and next pattern display, real-time sensor graph toggle. |
-| 05 | Result Report | Final score, judgment statistics (perfect, good, miss), recognition accuracy analysis. |
+### Domain Layer
+The domain layer contains the pure business logic, synchronization pipeline, and the abstract rules governing the game and AI model operations.
 
-### 3. Detailed UI Design
+```text
+* model/SensorWindow.kt
+A data class designed to hold the structured, 8-axis synchronized sensor data frame ready for model input.
+* model/DrumType.kt
+An enumeration defining the 6 target virtual instruments: Snare, Tom1, Tom2, Cymbal1, Cymbal2, and Hi-hat.
+* repository/SensorRepository.kt
+An abstract interface defining sensor data collection contracts, allowing the domain layer to remain independent of specific hardware implementations.
+* usecase/DataSyncUseCase.kt
+Contains the time-alignment algorithm that processes incoming heterogeneous sensor frequencies using linear interpolation and buffering techniques.
+* usecase/GetInferenceUseCase.kt
+Acts as an intermediary coordinator that requests classification from the inference engine and passes the recognized drum motion to the gameplay logic.
+* ai/InferenceEngine.kt
+Manages the TensorFlow Lite interpreter, memory allocation, and hardware acceleration to execute the optimized CNN-LSTM hybrid model on-device.
+* game/BeatManager.kt
+Analyzes the timeline of the active background music based on its BPM to calculate the precise target window for incoming inputs.
+* game/CalibrationManager.kt
+Handles the initial alignment of the virtual coordinate space, establishing sensor offsets based on the zero points of both hands.
+* game/JudgeManager.kt
+Evaluates the timing difference between the inferred drum strike and the correct music beat to determine Perfect, Good, or Miss judgments.
+```
 
-3.1. Main Home and Settings
-- Difficulty Settings: Managed within the settings menu, choosing the strictness of the accuracy tolerance (easy, normal, hard).
-- Function: As the difficulty increases, the AI model narrows the tolerance range for hit timing and trajectory.
+### Presentation Layer
+The presentation layer handles user interaction, state management, visual updates, and real-time sensory feedback execution.
+```text
+* view/MainActivity.kt
+The primary application entry point that manages global configuration and displays hardware pairing statuses.
+* view/CalibrationActivity.kt
+The specialized user interface that guides the player through the zero-point sensor calibration for both hands and coordinate establishment process.
+*view/PlayActivity.kt
+The main interactive gameplay screen that renders visual performance feedback and includes a toggle switch for real-time sensor graphs.
+*view/StageSelectActivity.kt
+The navigation screen enabling users to choose music stages, preview tracks, and select difficulty levels.
+* view/LoggerActivity.kt
+Provides a dedicated developer dashboard to facilitate safe dataset acquisition. Includes action controllers for logging state modifications and dropdown menus to label targets.
+* viewmodel/MainViewModel.kt
+Manages the UI state, background tasks, and validation rules for device connectivity and pre-game setups.
+* viewmodel/GameViewModel.kt
+Controls the active game loop state, tracks score accumulation, processes real-time sensor windows, and triggers immediate multi-sensory feedback events.
+* viewmodel/LoggerViewModel.kt
+Interacts with SensorRepository to fetch streaming data and handles local file output processes to export synchronized data blocks.
+* feedback/AudioEngine.kt
+A native C++ JNI wrapper using the Google Oboe library to deliver low-latency stereo sound feedback corresponding to the virtual drum strikes.
+* feedback/HapticController.kt
+Controls precise Android Vibrator attributes to output distinct tactile vibration patterns for performance indicators and errors.
+```
 
-3.2. Stage Selection Screen
-- Horizontal Scroll Layout: Stages are arranged in a line from left to right.
-- Stage Configuration Example (Stage 1):
-  - 1-1, 1-2, 1-3 (Practice): Stages to learn specific patterns individually. Each step includes specific sound sources for the pattern.
-  - 1-Main: A stage where all learned patterns appear to complete the full song.
-- Free Play: A fixed button at the top right of the screen for unrestricted play at any time.
-
-3.3. Game Play Screen
-- Core Feedback Elements:
-  1. Background Color Feedback: The entire screen flashes green (perfect), orange (good), or red with vibration (miss) based on the judgment.
-  2. Pattern Guide: The current pattern and the next pattern are displayed concisely at the top with icons or text.
-  3. Sensor Toggle: A button to turn the real-time sensor graph on and off.
-
-### 4. Sound and Haptic Design
-
-- Audio Cue: Lowers visual dependence by providing voice instructions before the start of a measure (e.g., Pattern 3).
-- Low-Latency Audio Feedback: Provides immediate standard stereo sound feedback for the corresponding drum upon strike recognition, replacing the previous 3D spatial audio system.
-- Vibration Pattern: Provides short and strong vibration on miss, and long congratulatory vibration on clearing a song.
+### AI Model Pipeline Layer
+The ai_model folder encapsulates the complete deep learning lifecycle from data preparation to optimization.
+```text
+* data/raw/
+Contains original 8-axis raw signals generated by LoggerActivity in comma-separated values format.
+* data/processed/
+Stores segmented time-series data windows partitioned based on magnitude peak detection criteria, ready for network training.
+* notebooks/01_data_preprocessing.ipynb
+Cloud-ready execution script for data parsing, sample interpolation, peak filtering, and sequential feature matrix partitioning.
+* notebooks/02_model_training.ipynb
+Configures the CNN-LSTM hybrid neural network architecture using PyTorch and monitors convergence metrics.
+* notebooks/03_model_optimization.ipynb
+Implements channel pruning matrices and INT8 linear quantization operations, exporting final models into compressed formats.
+* src/dataset.py
+Inherits from the PyTorch Dataset class to efficiently index windowed motion features and sequence labels.
+* src/models.py
+Declares structural parameters for spatial feature extractions and temporal sequence operations.
+* src/utils.py
+Contains utility functions for data visualizations, matrix evaluations, and format transformations.
+```
