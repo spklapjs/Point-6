@@ -16,6 +16,8 @@
 | 2026-05-18 | Phase 1 | Edited 02 System Architecture Based on change in 05 Detailed Software Architecture Specification | Completed |
 | 2026-05-18 | Phase 2 | Planning S-Pen SDK integration and module implementation | Completed |
 | 2026-05-19 | Phase 1 | Updated all specification documents for 8-axis system and 6 virtual drum zones | Completed |
+| 2026-05-19 | Phase 2 | Developed LoggerActivity for 8-axis data collection and 6 virtual drum zone labeling | Completed |
+| 2026-05-19 | Phase 3 | Created 06 Data Pipeline and AI Model Specification | Completed |
 
 ---
 
@@ -34,10 +36,11 @@ Phase 1: System Architecture Design
 Phase 2: Data Pipeline and Collection
 - [x] Initialization of Android Studio project with Kotlin
 - [x] Integration of S-Pen Remote SDK
-- [ ] Development of 8-axis data synchronization logic
+- [x] Development of 8-axis data synchronization logic and LoggerActivity
 - [ ] Collection and labeling of datasets for 6 virtual drum motions
 
 Phase 3: AI Model Development
+- [x] Creation of Data Pipeline and AI Model Specification
 - [ ] Design of CNN-LSTM hybrid model architecture
 - [ ] Offline training and hyperparameter tuning
 
