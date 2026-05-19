@@ -16,22 +16,29 @@
         android:id="@+id/labelSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"/>
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/btnStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Start Recording"
-        android:layout_marginBottom="12dp"/>
+        android:layout_marginBottom="8dp"/>
 
     <Button
         android:id="@+id/btnStop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Stop Recording"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="16dp"
         android:enabled="false"/>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/lineChart"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="16dp"/>
 
     <TextView
         android:id="@+id/tvStatus"
@@ -40,7 +47,7 @@
         android:text="Status: Ready"
         android:textSize="16sp"
         android:textStyle="normal"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="8dp"/>
 
     <TextView
         android:id="@+id/tvRecordCount"

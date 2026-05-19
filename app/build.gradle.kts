@@ -40,13 +40,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-
-    // 수명 주기 뷰모델 코루틴 종속성 추가
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-
-    // 삼성 S-Pen Remote SDK 파일 연동
+    implementation(libs.mpandroidchart)
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
