@@ -8,6 +8,7 @@
 * [Functional Requirements](./docs/03_Functional_Requirements.md)
 * [UI/UX Design](./docs/04_UI_UX_Design.md)
 * [Detailed Software Architecture Specification](./docs/05_Detailed_Software_Architecture_Specification.md)
+* [Data Pipeline and AI Model Specification](./docs/06_Data_Pipeline_and_AI_Model_Specification.md)
 
 ---
 
