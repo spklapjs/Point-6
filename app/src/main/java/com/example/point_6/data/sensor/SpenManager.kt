@@ -14,7 +14,7 @@ class SpenManager(private val context: Context) {
     var onSpenDataReceived: ((Float, Float) -> Unit)? = null
 
     private val airMotionListener = SpenEventListener { event ->
-        val airEvent = event as AirMotionEvent
+        val airEvent = AirMotionEvent(event)
         onSpenDataReceived?.invoke(airEvent.deltaX, airEvent.deltaY)
     }
 

@@ -81,9 +81,15 @@ class MainActivity : AppCompatActivity() {
 
         sensorRepository.startCollection()
 
+        var lastLogTime = 0L
+
         lifecycleScope.launch {
             sensorRepository.sensorDataFlow.collect { data ->
-                Log.d("SensorTest", "Phone Accel: ${data.phoneAccel.contentToString()}, SPen Delta: ${data.spenDelta.contentToString()}")
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastLogTime > 100) {
+                    Log.d("SensorTest", "SPen Delta: ${data.spenDelta.contentToString()}")
+                    lastLogTime = currentTime
+                }
             }
         }
     }
