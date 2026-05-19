@@ -31,7 +31,8 @@ class LoggerActivity : AppCompatActivity() {
     private lateinit var viewModel: LoggerViewModel
     private lateinit var sensorRepository: SensorRepositoryImpl
     private lateinit var lineChart: LineChart
-    private var selectedLabel: String = "Snare"
+    private var selectedLabel: String = "Cymbal1"
+    private var selectedDisplayLabel: String = "Cymbal1 (leftup)"
     private var timeIndex = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,13 +61,19 @@ class LoggerActivity : AppCompatActivity() {
         val btnStart: Button = findViewById(R.id.btnStart)
         val btnStop: Button = findViewById(R.id.btnStop)
 
-        val labels = arrayOf("Snare", "Tom1", "Tom2", "Cymbal1", "Cymbal2", "Hi-hat")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
+        val displayLabels = arrayOf(
+            "Cymbal1 (leftup)", "Tom1 (middleup)", "Cymbal2 (rightup)",
+            "Hi-hat (leftdown)", "Snare (middledown)", "Tom2 (leftdown)"
+        )
+        val rawLabels = arrayOf("Cymbal1", "Tom1", "Cymbal2", "Hi-hat", "Snare", "Tom2")
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, displayLabels)
         labelSpinner.adapter = adapter
 
         labelSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                selectedLabel = labels[position]
+                selectedLabel = rawLabels[position]
+                selectedDisplayLabel = displayLabels[position]
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -144,7 +151,7 @@ class LoggerActivity : AppCompatActivity() {
             viewModel.isRecording.collect { isRecording ->
                 btnStart.isEnabled = !isRecording
                 btnStop.isEnabled = isRecording
-                tvStatus.text = if (isRecording) "Status: Recording [$selectedLabel]..." else "Status: Ready"
+                tvStatus.text = if (isRecording) "Status: Recording [$selectedDisplayLabel]..." else "Status: Ready"
             }
         }
 
