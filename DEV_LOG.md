@@ -18,6 +18,8 @@
 | 2026-05-19 | Phase 1 | Updated all specification documents for 8-axis system and 6 virtual drum zones | Completed |
 | 2026-05-19 | Phase 2 | Developed LoggerActivity for 8-axis data collection and 6 virtual drum zone labeling | Completed |
 | 2026-05-19 | Phase 3 | Created 06 Data Pipeline and AI Model Specification | Completed |
+| 2026-05-28 | Phase 3 | Developed 01 data preprocessing and 02 model training notebooks | Completed | 
+| 2026-05-29 | Phase 4 | Developed 03 model optimization notebook and removed src package for single-file structure | Completed |
 
 ---
 
@@ -41,11 +43,11 @@ Phase 2: Data Pipeline and Collection
 
 Phase 3: AI Model Development
 - [x] Creation of Data Pipeline and AI Model Specification
-- [ ] Design of CNN-LSTM hybrid model architecture
-- [ ] Offline training and hyperparameter tuning
+- [x] Design of CNN-LSTM hybrid model architecture
+- [x] Offline training and hyperparameter tuning
 
 Phase 4: Optimization and Porting
-- [ ] Model pruning and INT8 quantization via TFLite
+- [x] Model pruning and INT8 quantization via TFLite
 - [ ] Porting optimized model to Android environment
 
 Phase 5: Integration and Final Testing
