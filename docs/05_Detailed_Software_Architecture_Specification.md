@@ -7,6 +7,7 @@
 | 1.0 | 2026-05-17 | Initial release |
 | 1.1 | 2026-05-17 | Added Logger package and ai_model pipeline structure |
 | 1.2 | 2026-05-18 | Updated for 8-axis system, removed BudsManager and spatial audio |
+| 1.3 | 2026-05-29 | Deleted ai_model/src directory |
 
 ## 1. Project Directory Structure
 
@@ -20,10 +21,6 @@ point-6
 │   │   ├── 01_data_preprocessing.ipynb
 │   │   ├── 02_model_training.ipynb
 │   │   └── 03_model_optimization.ipynb
-│   ├── src
-│   │   ├── dataset.py
-│   │   ├── models.py
-│   │   └── utils.py
 │   ├── checkpoints
 │   └── exported_models
 └── app
@@ -168,13 +165,4 @@ Configures the CNN-LSTM hybrid neural network architecture using PyTorch and mon
 
 notebooks/03_model_optimization.ipynb
 Implements channel pruning matrices and INT8 linear quantization operations, exporting final models into compressed formats.
-
-src/dataset.py
-Inherits from the PyTorch Dataset class to efficiently index windowed motion features and sequence labels.
-
-src/models.py
-Declares structural parameters for spatial feature extractions and temporal sequence operations.
-
-src/utils.py
-Contains utility functions for data visualizations, matrix evaluations, and format transformations.
 ```
