@@ -2,8 +2,6 @@ package com.example.point_6.presentation.view
 
 import android.graphics.Color
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
@@ -15,9 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.point_6.R
 import com.example.point_6.data.repository.SensorRepositoryImpl
 import com.example.point_6.data.sensor.PhoneSensorManager
-import com.example.point_6.data.sensor.SensorData
 import com.example.point_6.data.sensor.SpenManager
-import com.example.point_6.domain.usecase.DataSyncUseCase
 import com.example.point_6.presentation.viewmodel.LoggerViewModel
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
@@ -29,56 +25,64 @@ import kotlinx.coroutines.launch
 class LoggerActivity : AppCompatActivity() {
 
     private lateinit var viewModel: LoggerViewModel
-    private lateinit var sensorRepository: SensorRepositoryImpl
-    private lateinit var lineChart: LineChart
-    private var selectedLabel: String = "Cymbal1"
-    private var selectedDisplayLabel: String = "Cymbal1 (leftup)"
-    private var timeIndex = 0f
+    private lateinit var phoneChart: LineChart
+    private lateinit var spenChart: LineChart
+    private lateinit var btnStart: Button
+    private lateinit var btnStop: Button
+    private lateinit var tvStatus: TextView
+    private lateinit var tvRecordCount: TextView
+    private lateinit var labelSpinner: Spinner
+
+    private var phoneDataSetAccelX = LineDataSet(mutableListOf(), "Accel X").apply { color = Color.RED; setDrawCircles(false) }
+    private var phoneDataSetAccelY = LineDataSet(mutableListOf(), "Accel Y").apply { color = Color.GREEN; setDrawCircles(false) }
+    private var phoneDataSetAccelZ = LineDataSet(mutableListOf(), "Accel Z").apply { color = Color.BLUE; setDrawCircles(false) }
+
+    private var spenDataSetX = LineDataSet(mutableListOf(), "Delta X").apply { color = Color.MAGENTA; setDrawCircles(false) }
+    private var spenDataSetY = LineDataSet(mutableListOf(), "Delta Y").apply { color = Color.CYAN; setDrawCircles(false) }
+
+    private var phoneXIndex = 0f
+    private var spenXIndex = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_logger)
 
-        val phoneManager = PhoneSensorManager(this)
-        val spenManager = SpenManager(this)
-        sensorRepository = SensorRepositoryImpl(phoneManager, spenManager)
-        val syncUseCase = DataSyncUseCase()
-
         val factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return LoggerViewModel(application, sensorRepository, syncUseCase) as T
+                val phoneManager = PhoneSensorManager(applicationContext)
+                val spenManager = SpenManager(applicationContext)
+                val repository = SensorRepositoryImpl(phoneManager, spenManager)
+                return LoggerViewModel(application, repository) as T
             }
         }
         viewModel = ViewModelProvider(this, factory)[LoggerViewModel::class.java]
 
-        setupUI()
-        setupChart()
+        initUI()
+        setupCharts()
         observeViewModel()
     }
 
-    private fun setupUI() {
-        val labelSpinner: Spinner = findViewById(R.id.labelSpinner)
-        val btnStart: Button = findViewById(R.id.btnStart)
-        val btnStop: Button = findViewById(R.id.btnStop)
+    private fun initUI() {
+        phoneChart = findViewById(R.id.phoneChart)
+        spenChart = findViewById(R.id.spenChart)
+        btnStart = findViewById(R.id.btnStart)
+        btnStop = findViewById(R.id.btnStop)
+        tvStatus = findViewById(R.id.tvStatus)
+        tvRecordCount = findViewById(R.id.tvRecordCount)
+        labelSpinner = findViewById(R.id.labelSpinner)
 
-        val displayLabels = arrayOf(
-            "Cymbal1 (leftup)", "Tom1 (middleup)", "Cymbal2 (rightup)",
-            "Hi-hat (leftdown)", "Snare (middledown)", "Tom2 (leftdown)"
+        val labels = arrayOf(
+            "Phone_Cymbal1_LeftUp", "Phone_Tom1_MidUp", "Phone_Cymbal2_RightUp",
+            "Phone_Hihat_LeftDown", "Phone_Snare_MidDown", "Phone_Tom2_RightDown",
+            "SPen_Cymbal1_LeftUp", "SPen_Tom1_MidUp", "SPen_Cymbal2_RightUp",
+            "SPen_Hihat_LeftDown", "SPen_Snare_MidDown", "SPen_Tom2_RightDown"
         )
-        val rawLabels = arrayOf("Cymbal1", "Tom1", "Cymbal2", "Hi-hat", "Snare", "Tom2")
-
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, displayLabels)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, labels)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         labelSpinner.adapter = adapter
 
-        labelSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                selectedLabel = rawLabels[position]
-                selectedDisplayLabel = displayLabels[position]
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
         btnStart.setOnClickListener {
+            val selectedLabel = labelSpinner.selectedItem.toString()
             viewModel.startRecording(selectedLabel)
         }
 
@@ -87,84 +91,68 @@ class LoggerActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupChart() {
-        lineChart = findViewById(R.id.lineChart)
-        val dataSets = ArrayList<ILineDataSet>()
-
-        val colors = listOf(
-            Color.RED, Color.GREEN, Color.BLUE,
-            Color.MAGENTA, Color.CYAN, Color.parseColor("#FFA500"),
-            Color.BLACK, Color.parseColor("#8B4513")
-        )
-
-        val labels = listOf(
-            "Phone Accel X", "Phone Accel Y", "Phone Accel Z",
-            "Phone Gyro X", "Phone Gyro Y", "Phone Gyro Z",
-            "SPen X (x10)", "SPen Y (x10)"
-        )
-
-        for (i in 0 until 8) {
-            val dataSet = LineDataSet(ArrayList<Entry>(), labels[i])
-            dataSet.color = colors[i]
-            dataSet.setDrawCircles(false)
-            dataSet.setDrawValues(false)
-            dataSets.add(dataSet)
+    private fun setupCharts() {
+        val phoneDataSets = ArrayList<ILineDataSet>().apply {
+            add(phoneDataSetAccelX)
+            add(phoneDataSetAccelY)
+            add(phoneDataSetAccelZ)
         }
+        phoneChart.data = LineData(phoneDataSets)
+        phoneChart.description.isEnabled = false
+        phoneChart.setVisibleXRangeMaximum(500f)
+        phoneChart.invalidate()
 
-        lineChart.data = LineData(dataSets)
-        lineChart.description.isEnabled = false
-        lineChart.axisRight.isEnabled = false
-
-        val legend = lineChart.legend
-        legend.isWordWrapEnabled = true
-    }
-
-    private fun updateChart(data: SensorData) {
-        val chartData = lineChart.data ?: return
-
-        val values = floatArrayOf(
-            data.phoneAccel[0], data.phoneAccel[1], data.phoneAccel[2],
-            data.phoneGyro[0], data.phoneGyro[1], data.phoneGyro[2],
-            data.spenDelta[0] * 10f, data.spenDelta[1] * 10f
-        )
-
-        for (i in 0 until 8) {
-            val dataSet = chartData.getDataSetByIndex(i)
-            dataSet.addEntry(Entry(timeIndex, values[i]))
+        val spenDataSets = ArrayList<ILineDataSet>().apply {
+            add(spenDataSetX)
+            add(spenDataSetY)
         }
-
-        timeIndex += 1f
-
-        chartData.notifyDataChanged()
-        lineChart.notifyDataSetChanged()
-        lineChart.setVisibleXRangeMaximum(100f)
-        lineChart.moveViewToX(chartData.entryCount.toFloat())
+        spenChart.data = LineData(spenDataSets)
+        spenChart.description.isEnabled = false
+        spenChart.setVisibleXRangeMaximum(500f)
+        spenChart.invalidate()
     }
 
     private fun observeViewModel() {
-        val btnStart: Button = findViewById(R.id.btnStart)
-        val btnStop: Button = findViewById(R.id.btnStop)
-        val tvStatus: TextView = findViewById(R.id.tvStatus)
-        val tvRecordCount: TextView = findViewById(R.id.tvRecordCount)
-
         lifecycleScope.launch {
             viewModel.isRecording.collect { isRecording ->
                 btnStart.isEnabled = !isRecording
                 btnStop.isEnabled = isRecording
-                tvStatus.text = if (isRecording) "Status: Recording [$selectedDisplayLabel]..." else "Status: Ready"
+                labelSpinner.isEnabled = !isRecording
+                tvStatus.text = if (isRecording) "Status: Recording..." else "Status: Ready"
             }
         }
 
         lifecycleScope.launch {
             viewModel.recordedCount.collect { count ->
-                tvRecordCount.text = "Recorded Windows: $count"
+                tvRecordCount.text = "Recorded Points: $count"
             }
         }
 
         lifecycleScope.launch {
-            sensorRepository.sensorDataFlow.collect { data ->
-                if (viewModel.isRecording.value) {
-                    updateChart(data)
+            viewModel.phoneStream.collect { data ->
+                data?.let {
+                    phoneDataSetAccelX.addEntry(Entry(phoneXIndex, it.accel[0]))
+                    phoneDataSetAccelY.addEntry(Entry(phoneXIndex, it.accel[1]))
+                    phoneDataSetAccelZ.addEntry(Entry(phoneXIndex, it.accel[2]))
+                    phoneXIndex += 1f
+
+                    phoneChart.data.notifyDataChanged()
+                    phoneChart.notifyDataSetChanged()
+                    phoneChart.moveViewToX(phoneXIndex)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.spenStream.collect { data ->
+                data?.let {
+                    spenDataSetX.addEntry(Entry(spenXIndex, it.deltaX))
+                    spenDataSetY.addEntry(Entry(spenXIndex, it.deltaY))
+                    spenXIndex += 1f
+
+                    spenChart.data.notifyDataChanged()
+                    spenChart.notifyDataSetChanged()
+                    spenChart.moveViewToX(spenXIndex)
                 }
             }
         }

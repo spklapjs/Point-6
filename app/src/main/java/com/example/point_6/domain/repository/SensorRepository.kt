@@ -1,7 +1,13 @@
 package com.example.point_6.domain.repository
 
+import com.example.point_6.domain.model.PhoneRawData
+import com.example.point_6.domain.model.SPenRawData
+import kotlinx.coroutines.flow.SharedFlow
+
 interface SensorRepository {
+    val phoneDataStream: SharedFlow<PhoneRawData>
+    val spenDataStream: SharedFlow<SPenRawData>
+
     fun startCollection()
     fun stopCollection()
-    // 추후 8축 센서 데이터 스트림 및 200ms 윈도우 슬라이싱 결과 반환 로직 추가 예정
 }
