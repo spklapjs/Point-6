@@ -18,8 +18,14 @@
 | 2026-05-19 | Phase 1 | Updated all specification documents for 8-axis system and 6 virtual drum zones | Completed |
 | 2026-05-19 | Phase 2 | Developed LoggerActivity for 8-axis data collection and 6 virtual drum zone labeling | Completed |
 | 2026-05-19 | Phase 3 | Created 06 Data Pipeline and AI Model Specification | Completed |
-| 2026-05-28 | Phase 3 | Developed 01 data preprocessing and 02 model training notebooks | Completed | 
+| 2026-05-28 | Phase 3 | Developed 01 data preprocessing and 02 model training notebooks | Completed |
 | 2026-05-29 | Phase 4 | Developed 03 model optimization notebook and removed src package for single-file structure | Completed |
+| 2026-05-30 | Phase 5 | Evaluated initial 8-axis model with 1975 collected samples; accuracy fell short of target | Completed |
+| - | - | - | - |
+| 2026-05-30 | Phase 1 | Redesigned system architecture to parallel dual-model and continuous streaming | Completed |
+| 2026-05-30 | Phase 1 | Updated all specification documents for parallel dual-model architecture | Completed |
+| 2026-05-30 | Phase 2 | Initiated re-development for continuous stream Android Logger | Pending |
+| 2026-05-30 | Phase 3 | Initiated re-development for independent dual-model AI pipeline | Pending |
 
 ---
 
@@ -33,22 +39,22 @@ Phase 1: System Architecture Design
 - [x] Design of 5-layer data pipeline (Sensors to Feedback)
 - [x] Specification of MVVM software architecture
 - [x] Completion of UI/UX design specification v1.1
-- [x] Update of all specifications for 8-axis sensor fusion
+- [x] Update of all specifications for parallel dual-model architecture
 
 Phase 2: Data Pipeline and Collection
 - [x] Initialization of Android Studio project with Kotlin
 - [x] Integration of S-Pen Remote SDK
-- [x] Development of 8-axis data synchronization logic and LoggerActivity
-- [ ] Collection and labeling of datasets for 6 virtual drum motions
+- [ ] Re-development of Android LoggerActivity for continuous streaming
+- [ ] Re-collection of datasets (previous 1975 samples discarded) for independent smartphone and S-Pen models
 
 Phase 3: AI Model Development
 - [x] Creation of Data Pipeline and AI Model Specification
-- [x] Design of CNN-LSTM hybrid model architecture
-- [x] Offline training and hyperparameter tuning
+- [ ] Re-development of data preprocessing for peak centering
+- [ ] Training of independent CNN-LSTM models for smartphone and S-Pen
 
 Phase 4: Optimization and Porting
-- [x] Model pruning and INT8 quantization via TFLite
-- [ ] Porting optimized model to Android environment
+- [ ] Optimization of dual models via pruning and quantization
+- [ ] Porting optimized models to Android environment
 
 Phase 5: Integration and Final Testing
 - [ ] System integration and latency validation
