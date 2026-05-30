@@ -98,7 +98,7 @@ class LoggerViewModel(
 
     private fun writePhoneData(data: PhoneRawData) {
         try {
-            csvWriter?.append("${data.timestamp},${data.accel},${data.accel[1]},${data.accel[2]},${data.gyro},${data.gyro[1]},${data.gyro[2]},$currentLabel\n")
+            csvWriter?.append("${data.timestamp},${data.accel[0]},${data.accel[1]},${data.accel[2]},${data.gyro[0]},${data.gyro[1]},${data.gyro[2]},$currentLabel\n")
             csvWriter?.flush()
             _recordedCount.value += 1
         } catch (e: Exception) {

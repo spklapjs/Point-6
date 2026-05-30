@@ -20,6 +20,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
+import com.github.mikephil.charting.utils.Utils
 import kotlinx.coroutines.launch
 
 class LoggerActivity : AppCompatActivity() {
@@ -33,13 +34,6 @@ class LoggerActivity : AppCompatActivity() {
     private lateinit var tvRecordCount: TextView
     private lateinit var labelSpinner: Spinner
 
-    private var phoneDataSetAccelX = LineDataSet(mutableListOf(), "Accel X").apply { color = Color.RED; setDrawCircles(false) }
-    private var phoneDataSetAccelY = LineDataSet(mutableListOf(), "Accel Y").apply { color = Color.GREEN; setDrawCircles(false) }
-    private var phoneDataSetAccelZ = LineDataSet(mutableListOf(), "Accel Z").apply { color = Color.BLUE; setDrawCircles(false) }
-
-    private var spenDataSetX = LineDataSet(mutableListOf(), "Delta X").apply { color = Color.MAGENTA; setDrawCircles(false) }
-    private var spenDataSetY = LineDataSet(mutableListOf(), "Delta Y").apply { color = Color.CYAN; setDrawCircles(false) }
-
     private var phoneXIndex = 0f
     private var spenXIndex = 0f
 
@@ -47,15 +41,17 @@ class LoggerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_logger)
 
+        Utils.init(this)
+
         val factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val phoneManager = PhoneSensorManager(applicationContext)
-                val spenManager = SpenManager(applicationContext)
+                val spenManager = SpenManager(this@LoggerActivity)
                 val repository = SensorRepositoryImpl(phoneManager, spenManager)
                 return LoggerViewModel(application, repository) as T
             }
         }
-        viewModel = ViewModelProvider(this, factory)[LoggerViewModel::class.java]
+        viewModel = ViewModelProvider(this, factory).get(LoggerViewModel::class.java)
 
         initUI()
         setupCharts()
@@ -92,24 +88,49 @@ class LoggerActivity : AppCompatActivity() {
     }
 
     private fun setupCharts() {
-        val phoneDataSets = ArrayList<ILineDataSet>().apply {
-            add(phoneDataSetAccelX)
-            add(phoneDataSetAccelY)
-            add(phoneDataSetAccelZ)
+        val phoneDataSets = ArrayList<ILineDataSet>()
+        val phoneColors = listOf(
+            Color.RED, Color.GREEN, Color.BLUE,
+            Color.MAGENTA, Color.CYAN, Color.parseColor("#FFA500")
+        )
+        val phoneLabels = listOf(
+            "Accel X", "Accel Y", "Accel Z",
+            "Gyro X", "Gyro Y", "Gyro Z"
+        )
+
+        for (i in 0 until 6) {
+            val dataSet = LineDataSet(ArrayList<Entry>(), phoneLabels.get(i)).apply {
+                color = phoneColors.get(i)
+                setDrawCircles(false)
+                setDrawValues(false)
+                lineWidth = 1f
+            }
+            phoneDataSets.add(dataSet)
         }
+
         phoneChart.data = LineData(phoneDataSets)
         phoneChart.description.isEnabled = false
-        phoneChart.setVisibleXRangeMaximum(500f)
-        phoneChart.invalidate()
+        phoneChart.axisRight.isEnabled = false
+        phoneChart.legend.isWordWrapEnabled = true
 
-        val spenDataSets = ArrayList<ILineDataSet>().apply {
-            add(spenDataSetX)
-            add(spenDataSetY)
+        val spenDataSets = ArrayList<ILineDataSet>()
+        val spenColors = listOf(Color.BLACK, Color.parseColor("#8B4513"))
+        val spenLabels = listOf("Delta X (x10)", "Delta Y (x10)")
+
+        for (i in 0 until 2) {
+            val dataSet = LineDataSet(ArrayList<Entry>(), spenLabels.get(i)).apply {
+                color = spenColors.get(i)
+                setDrawCircles(false)
+                setDrawValues(false)
+                lineWidth = 1f
+            }
+            spenDataSets.add(dataSet)
         }
+
         spenChart.data = LineData(spenDataSets)
         spenChart.description.isEnabled = false
-        spenChart.setVisibleXRangeMaximum(500f)
-        spenChart.invalidate()
+        spenChart.axisRight.isEnabled = false
+        spenChart.legend.isWordWrapEnabled = true
     }
 
     private fun observeViewModel() {
@@ -131,14 +152,27 @@ class LoggerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.phoneStream.collect { data ->
                 data?.let {
-                    phoneDataSetAccelX.addEntry(Entry(phoneXIndex, it.accel[0]))
-                    phoneDataSetAccelY.addEntry(Entry(phoneXIndex, it.accel[1]))
-                    phoneDataSetAccelZ.addEntry(Entry(phoneXIndex, it.accel[2]))
+                    val chartData = phoneChart.data ?: return@let
+
+                    // 채팅 시스템의 대괄호 인용구 강제 변환 버그를 피하기 위해 get 함수 사용
+                    val values = floatArrayOf(
+                        it.accel.get(0), it.accel.get(1), it.accel.get(2),
+                        it.gyro.get(0), it.gyro.get(1), it.gyro.get(2)
+                    )
+
+                    for (i in 0 until 6) {
+                        val dataSet = chartData.getDataSetByIndex(i)
+                        dataSet.addEntry(Entry(phoneXIndex, values.get(i)))
+                    }
+
                     phoneXIndex += 1f
 
-                    phoneChart.data.notifyDataChanged()
+                    chartData.notifyDataChanged()
                     phoneChart.notifyDataSetChanged()
-                    phoneChart.moveViewToX(phoneXIndex)
+
+                    phoneChart.setVisibleXRangeMaximum(500f)
+                    phoneChart.moveViewToX(phoneXIndex - 500f)
+                    phoneChart.invalidate()
                 }
             }
         }
@@ -146,13 +180,26 @@ class LoggerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.spenStream.collect { data ->
                 data?.let {
-                    spenDataSetX.addEntry(Entry(spenXIndex, it.deltaX))
-                    spenDataSetY.addEntry(Entry(spenXIndex, it.deltaY))
+                    val chartData = spenChart.data ?: return@let
+
+                    val values = floatArrayOf(
+                        it.deltaX * 10f, it.deltaY * 10f
+                    )
+
+                    for (i in 0 until 2) {
+                        val dataSet = chartData.getDataSetByIndex(i)
+                        dataSet.addEntry(Entry(spenXIndex, values.get(i)))
+                    }
+
                     spenXIndex += 1f
 
-                    spenChart.data.notifyDataChanged()
+                    chartData.notifyDataChanged()
                     spenChart.notifyDataSetChanged()
-                    spenChart.moveViewToX(spenXIndex)
+
+                    // 에스펜 차트의 데이터 압축률을 줄여 선이 겹치지 않도록 최대 범위 100으로 변경
+                    spenChart.setVisibleXRangeMaximum(100f)
+                    spenChart.moveViewToX(spenXIndex - 100f)
+                    spenChart.invalidate()
                 }
             }
         }

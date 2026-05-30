@@ -35,10 +35,13 @@ class SpenManager(private val context: Context) {
     }
 
     fun disconnectSpen() {
-        unitManager?.let {
-            val airMotionUnit = it.getUnit(SpenUnit.TYPE_AIR_MOTION)
-            it.unregisterSpenEventListener(airMotionUnit)
+        // 에스펜이 실제로 연결되어 있는 상태에서만 리스너 해제 및 서비스 연결 해제를 수행하도록 방어 코드 추가
+        if (spenRemote.isConnected) {
+            unitManager?.let {
+                val airMotionUnit = it.getUnit(SpenUnit.TYPE_AIR_MOTION)
+                it.unregisterSpenEventListener(airMotionUnit)
+            }
+            spenRemote.disconnect(context)
         }
-        spenRemote.disconnect(context)
     }
 }

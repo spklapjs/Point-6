@@ -26,7 +26,6 @@ class SensorRepositoryImpl(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
-        // 폰 센서 매니저로부터 데이터가 들어오면 시스템 시간을 생성하여 독립적인 폰 스트림으로 방출
         phoneSensorManager.onSensorDataReceived = { accel, gyro ->
             scope.launch {
                 val timestamp = System.currentTimeMillis()
@@ -34,7 +33,6 @@ class SensorRepositoryImpl(
             }
         }
 
-        // 에스펜 매니저로부터 데이터가 들어오면 독립적인 에스펜 스트림으로 방출
         spenManager.onSpenDataReceived = { deltaX, deltaY ->
             scope.launch {
                 _spenDataStream.emit(SPenRawData(System.currentTimeMillis(), deltaX, deltaY))
@@ -44,11 +42,11 @@ class SensorRepositoryImpl(
 
     override fun startCollection() {
         phoneSensorManager.startListening()
-        // 에스펜 리모트 연결 활성화 로직이 추가로 필요하다면 여기에 작성
+        spenManager.connectSpen()
     }
 
     override fun stopCollection() {
         phoneSensorManager.stopListening()
-        // 에스펜 리모트 연결 해제 로직이 추가로 필요하다면 여기에 작성
+        spenManager.disconnectSpen()
     }
 }
