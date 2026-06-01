@@ -14,6 +14,7 @@ import com.spklapjs.point_6.data.inference.SPenInferenceEngine
 import com.example.point_6.domain.model.PhoneSensorWindow
 import com.example.point_6.domain.model.SPenSensorWindow
 import com.example.point_6.domain.usecase.GetInferenceUseCase
+import com.example.point_6.presentation.feedback.AudioEngine
 import com.example.point_6.presentation.viewmodel.GameViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ class TestActivity : AppCompatActivity() {
     private lateinit var phoneSensorManager: PhoneSensorManager
     private lateinit var spenManager: SpenManager
     private lateinit var gameViewModel: GameViewModel
+    private lateinit var audioEngine: AudioEngine
 
     private val phoneAccelBuffer = mutableListOf<FloatArray>()
     private val phoneGyroBuffer = mutableListOf<FloatArray>()
@@ -54,6 +56,7 @@ class TestActivity : AppCompatActivity() {
 
         phoneSensorManager = PhoneSensorManager(this)
         spenManager = SpenManager(this)
+        audioEngine = AudioEngine(this)
 
         setupSensors()
         observeInferenceResults()
@@ -104,7 +107,7 @@ class TestActivity : AppCompatActivity() {
                 }
             }
 
-            if (maxZ > 50f && peakIndex in 31..35) {
+            if (maxZ > 35f && peakIndex in 25..38) {
                 val flatAccel = FloatArray(120)
                 val flatGyro = FloatArray(120)
                 for (i in 0 until 40) {
@@ -113,7 +116,7 @@ class TestActivity : AppCompatActivity() {
                 }
                 val phoneWindow = PhoneSensorWindow(0L, 0L, flatAccel, flatGyro)
                 gameViewModel.processSensorData(phoneWindow, null)
-                        phoneCooldown = 4
+                phoneCooldown = 50
             }
         }
     }
@@ -138,14 +141,14 @@ class TestActivity : AppCompatActivity() {
                 }
             }
 
-            if (maxDelta > 0.5f && peakIndex in 31..35) {
+            if (maxDelta > 0.2f && peakIndex in 25..38) {
                 val flatDelta = FloatArray(80)
                 for (i in 0 until 40) {
                     System.arraycopy(spenDeltaBuffer[i], 0, flatDelta, i * 2, 2)
                 }
                 val spenWindow = SPenSensorWindow(0L, 0L, flatDelta)
                 gameViewModel.processSensorData(null, spenWindow)
-                        spenCooldown = 4
+                spenCooldown = 3
             }
         }
     }
@@ -153,8 +156,18 @@ class TestActivity : AppCompatActivity() {
     private fun observeInferenceResults() {
         lifecycleScope.launch {
             gameViewModel.inferenceResult.collectLatest { result ->
-                val phoneResult = result.first?.name ?: "None"
-                val spenResult = result.second?.name ?: "None"
+                val phoneDrum = result.first
+                val spenDrum = result.second
+
+                if (phoneDrum != null) {
+                    audioEngine.play(phoneDrum)
+                }
+                if (spenDrum != null) {
+                    audioEngine.play(spenDrum)
+                }
+
+                val phoneResult = phoneDrum?.name ?: "None"
+                val spenResult = spenDrum?.name ?: "None"
                 tvResult.text = "Phone: $phoneResult \nS-Pen: $spenResult"
             }
         }
@@ -170,5 +183,10 @@ class TestActivity : AppCompatActivity() {
         super.onPause()
         phoneSensorManager.stopListening()
         spenManager.disconnectSpen()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        audioEngine.release()
     }
 }
