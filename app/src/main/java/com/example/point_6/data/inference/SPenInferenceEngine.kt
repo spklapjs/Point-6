@@ -9,9 +9,11 @@ import com.example.point_6.domain.model.SPenSensorWindow
 
 class SPenInferenceEngine(context: Context) {
     private var interpreter: Interpreter
+    private var modelBuffer: MappedByteBuffer
 
     init {
-        interpreter = Interpreter(loadModelFile(context, "spen_model.tflite"))
+        modelBuffer = loadModelFile(context, "spen_model.tflite")
+        interpreter = Interpreter(modelBuffer)
     }
 
     private fun loadModelFile(context: Context, modelName: String): MappedByteBuffer {
@@ -21,10 +23,11 @@ class SPenInferenceEngine(context: Context) {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, fileDescriptor.startOffset, fileDescriptor.declaredLength)
     }
 
+    @Synchronized
     fun predict(window: SPenSensorWindow): Int {
-        val input = Array(1) { Array(20) { FloatArray(2) } }
+        val input = Array(1) { Array(40) { FloatArray(2) } }
         var index = 0
-        for (i in 0 until 20) {
+        for (i in 0 until 40) {
             input[0][i][0] = window.spenDelta[index++]
             input[0][i][1] = window.spenDelta[index++]
         }

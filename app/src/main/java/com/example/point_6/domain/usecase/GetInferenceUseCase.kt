@@ -19,7 +19,7 @@ class GetInferenceUseCase(
     ): Pair<DrumType?, DrumType?> = coroutineScope {
 
         val phoneResult = async(Dispatchers.Default) {
-            if (phoneWindow != null && phoneWindow.phoneAccel.size == 60 && phoneWindow.phoneGyro.size == 60) {
+            if (phoneWindow != null && phoneWindow.phoneAccel.size == 120 && phoneWindow.phoneGyro.size == 120) {
                 val index = smartphoneEngine.predict(phoneWindow)
                 DrumType.fromIndex(index)
             } else {
@@ -28,7 +28,7 @@ class GetInferenceUseCase(
         }
 
         val spenResult = async(Dispatchers.Default) {
-            if (spenWindow != null && spenWindow.spenDelta.size == 40) {
+            if (spenWindow != null && spenWindow.spenDelta.size == 80) {
                 val index = spenEngine.predict(spenWindow)
                 DrumType.fromIndex(index)
             } else {

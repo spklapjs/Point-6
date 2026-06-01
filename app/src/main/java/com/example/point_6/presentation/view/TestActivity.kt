@@ -17,6 +17,7 @@ import com.example.point_6.domain.usecase.GetInferenceUseCase
 import com.example.point_6.presentation.viewmodel.GameViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 class TestActivity : AppCompatActivity() {
 
@@ -27,9 +28,11 @@ class TestActivity : AppCompatActivity() {
     private val phoneAccelBuffer = mutableListOf<FloatArray>()
     private val phoneGyroBuffer = mutableListOf<FloatArray>()
     private var phoneFrameCount = 0
+    private var phoneCooldown = 0
 
     private val spenDeltaBuffer = mutableListOf<FloatArray>()
     private var spenFrameCount = 0
+    private var spenCooldown = 0
 
     private lateinit var tvResult: TextView
 
@@ -67,7 +70,7 @@ class TestActivity : AppCompatActivity() {
             phoneFrameCount++
             if (phoneFrameCount >= 5) {
                 phoneFrameCount = 0
-                triggerInference()
+                triggerPhoneInference()
             }
         }
 
@@ -78,36 +81,72 @@ class TestActivity : AppCompatActivity() {
             spenFrameCount++
             if (spenFrameCount >= 5) {
                 spenFrameCount = 0
-                triggerInference()
+                triggerSpenInference()
             }
         }
     }
 
-    private fun triggerInference() {
-        val phoneWindow = if (phoneAccelBuffer.size == 20 && phoneGyroBuffer.size == 20) {
-            val flatAccel = FloatArray(60)
-            val flatGyro = FloatArray(60)
-            for (i in 0 until 20) {
-                System.arraycopy(phoneAccelBuffer[i], 0, flatAccel, i * 3, 3)
-                System.arraycopy(phoneGyroBuffer[i], 0, flatGyro, i * 3, 3)
-            }
-            PhoneSensorWindow(0L, 0L, flatAccel, flatGyro)
-        } else {
-            null
+    private fun triggerPhoneInference() {
+        if (phoneCooldown > 0) {
+            phoneCooldown--
+            return
         }
 
-        val spenWindow = if (spenDeltaBuffer.size == 20) {
-            val flatDelta = FloatArray(40)
+        if (phoneAccelBuffer.size == 20 && phoneGyroBuffer.size == 20) {
+            var maxZ = 0f
+            var peakIndex = -1
+
             for (i in 0 until 20) {
-                System.arraycopy(spenDeltaBuffer[i], 0, flatDelta, i * 2, 2)
+                val absZ = abs(phoneAccelBuffer[i][1])
+                if (absZ > maxZ) {
+                    maxZ = absZ
+                    peakIndex = i
+                }
             }
-            SPenSensorWindow(0L, 0L, flatDelta)
-        } else {
-            null
+
+            if (maxZ > 50f && peakIndex in 14..17) {
+                val flatAccel = FloatArray(60)
+                val flatGyro = FloatArray(60)
+                for (i in 0 until 20) {
+                    System.arraycopy(phoneAccelBuffer[i], 0, flatAccel, i * 3, 3)
+                    System.arraycopy(phoneGyroBuffer[i], 0, flatGyro, i * 3, 3)
+                }
+                val phoneWindow = PhoneSensorWindow(0L, 0L, flatAccel, flatGyro)
+                gameViewModel.processSensorData(phoneWindow, null)
+                phoneCooldown = 3
+            }
+        }
+    }
+
+    private fun triggerSpenInference() {
+        if (spenCooldown > 0) {
+            spenCooldown--
+            return
         }
 
-        if (phoneWindow != null || spenWindow != null) {
-            gameViewModel.processSensorData(phoneWindow, spenWindow)
+        if (spenDeltaBuffer.size == 20) {
+            var maxDelta = 0f
+            var peakIndex = -1
+
+            for (i in 0 until 20) {
+                val absX = abs(spenDeltaBuffer[i][0])
+                val absY = abs(spenDeltaBuffer[i][1])
+                val currentMax = if (absX > absY) absX else absY
+                if (currentMax > maxDelta) {
+                    maxDelta = currentMax
+                    peakIndex = i
+                }
+            }
+
+            if (maxDelta > 0.5f && peakIndex in 14..17) {
+                val flatDelta = FloatArray(40)
+                for (i in 0 until 20) {
+                    System.arraycopy(spenDeltaBuffer[i], 0, flatDelta, i * 2, 2)
+                }
+                val spenWindow = SPenSensorWindow(0L, 0L, flatDelta)
+                gameViewModel.processSensorData(null, spenWindow)
+                spenCooldown = 3
+            }
         }
     }
 

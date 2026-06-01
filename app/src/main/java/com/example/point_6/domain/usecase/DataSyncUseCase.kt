@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.flow
 
 class DataSyncUseCase {
 
-    private val windowSizeMs = 200L
-    private val overlapMs = 100L
+    private val windowSizeMs = 400L
+    private val overlapMs = 200L
 
     fun processPhoneDataStream(dataStream: Flow<PhoneRawData>): Flow<PhoneSensorWindow> = flow {
         val buffer = mutableListOf<PhoneRawData>()

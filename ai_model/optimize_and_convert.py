@@ -31,8 +31,8 @@ class DynamicCNNLSTM(nn.Module):
         c0 = torch.zeros(1, x.size(0), 128, device=x.device)
         lstm_out, _ = self.lstm(x, (h0, c0))
         
-        # 음수 슬라이싱인 lstm_out[:, -1, :] 대신 양수 고정 인덱스 19를 사용합니다.
-        out = self.fc(lstm_out[:, 19, :])
+        # 윈도우 크기 변경에 맞추어 양수 고정 인덱스를 19에서 39로 수정합니다.
+        out = self.fc(lstm_out[:, 39, :])
         return out
 
 def get_tool_path(tool_name):
@@ -69,7 +69,8 @@ def optimize_and_export_pipeline(device_name, in_channels, feature_path, label_p
         print(f"{device_name} 소스 특징 데이터셋 로드 성공")
     except Exception as e:
         print(f"데이터셋 로드 실패: {e}")
-        features = torch.randn(200, in_channels, 20)
+        # 예외 처리용 예비 데이터 생성 규격을 20에서 40으로 수정합니다.
+        features = torch.randn(200, in_channels, 40)
         labels = torch.randint(0, num_classes, (200,))
 
     dataset = TensorDataset(features, labels)
@@ -104,7 +105,8 @@ def optimize_and_export_pipeline(device_name, in_channels, feature_path, label_p
     raw_onnx_path = f"{device_name}_model.onnx"
     output_tflite_dir = f"exported_models/{device_name}_tflite"
 
-    dummy_input = torch.randn(1, in_channels, 20, device="cpu")
+    # 더미 입력 차원을 20에서 40으로 수정합니다.
+    dummy_input = torch.randn(1, in_channels, 40, device="cpu")
     torch.onnx.export(
         model,
         dummy_input,

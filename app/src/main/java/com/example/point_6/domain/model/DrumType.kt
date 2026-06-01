@@ -10,7 +10,7 @@ enum class DrumType(val index: Int) {
 
     companion object {
         fun fromIndex(index: Int): DrumType {
-            return values().firstOrNull { it.index == index } ?: SNARE
+            return values().firstOrNull { it.index == index } ?: CYMBAL1
         }
     }
 }

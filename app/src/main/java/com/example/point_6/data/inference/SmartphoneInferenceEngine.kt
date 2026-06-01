@@ -9,9 +9,11 @@ import com.example.point_6.domain.model.PhoneSensorWindow
 
 class SmartphoneInferenceEngine(context: Context) {
     private var interpreter: Interpreter
+    private var modelBuffer: MappedByteBuffer
 
     init {
-        interpreter = Interpreter(loadModelFile(context, "smartphone_model.tflite"))
+        modelBuffer = loadModelFile(context, "smartphone_model.tflite")
+        interpreter = Interpreter(modelBuffer)
     }
 
     private fun loadModelFile(context: Context, modelName: String): MappedByteBuffer {
@@ -21,9 +23,10 @@ class SmartphoneInferenceEngine(context: Context) {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, fileDescriptor.startOffset, fileDescriptor.declaredLength)
     }
 
+    @Synchronized
     fun predict(window: PhoneSensorWindow): Int {
-        val input = Array(1) { Array(20) { FloatArray(6) } }
-        for (i in 0 until 20) {
+        val input = Array(1) { Array(40) { FloatArray(6) } }
+        for (i in 0 until 40) {
             input[0][i][0] = window.phoneAccel[i * 3 + 0]
             input[0][i][1] = window.phoneAccel[i * 3 + 1]
             input[0][i][2] = window.phoneAccel[i * 3 + 2]
