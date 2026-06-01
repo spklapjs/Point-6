@@ -36,6 +36,11 @@ class MainActivity : AppCompatActivity() {
         btnGoToLogger.setOnClickListener {
             startActivity(Intent(this, LoggerActivity::class.java))
         }
+
+        val btnGoToTest = findViewById<Button>(R.id.btnGoToTest)
+        btnGoToTest.setOnClickListener {
+            startActivity(Intent(this, TestActivity::class.java))
+        }
     }
 
     private fun checkPermissions() {
