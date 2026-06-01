@@ -31,7 +31,8 @@ class DynamicCNNLSTM(nn.Module):
         c0 = torch.zeros(1, x.size(0), 128, device=x.device)
         lstm_out, _ = self.lstm(x, (h0, c0))
         
-        out = self.fc(lstm_out[:, -1, :])
+        # 음수 슬라이싱인 lstm_out[:, -1, :] 대신 양수 고정 인덱스 19를 사용합니다.
+        out = self.fc(lstm_out[:, 19, :])
         return out
 
 def get_tool_path(tool_name):
@@ -43,10 +44,10 @@ def get_tool_path(tool_name):
 
 def optimize_and_export_pipeline(device_name, in_channels, feature_path, label_path, checkpoint_path):
     print(f"--- {device_name} 모델 최적화 및 로컬 파이프라인 가동 ---")
-    
-    num_classes = 6 
+
+    num_classes = 6
     model = DynamicCNNLSTM(in_channels=in_channels, num_classes=num_classes)
-    
+
     if os.path.exists(checkpoint_path):
         try:
             model.load_state_dict(torch.load(checkpoint_path, map_location="cpu"))
@@ -88,28 +89,28 @@ def optimize_and_export_pipeline(device_name, in_channels, feature_path, label_p
             loss = criterion(outputs, batch_y)
             loss.backward()
             optimizer.step()
-            
+
             total_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
             total += batch_y.size(0)
             correct += (predicted == batch_y).sum().item()
-        
+
         if epoch == 1 or epoch % 10 == 0:
             acc = 100 * correct / total
             print(f"Epoch {epoch}/50, Loss: {total_loss/len(loader):.4f}, 동적 검증 정확도: {acc:.2f} %")
 
     model.eval()
-    
+
     raw_onnx_path = f"{device_name}_model.onnx"
     output_tflite_dir = f"exported_models/{device_name}_tflite"
 
     dummy_input = torch.randn(1, in_channels, 20, device="cpu")
     torch.onnx.export(
-        model, 
-        dummy_input, 
+        model,
+        dummy_input,
         raw_onnx_path,
         export_params=True,
-        input_names=["input"], 
+        input_names=["input"],
         output_names=["output"],
         opset_version=18
     )
@@ -125,7 +126,6 @@ def optimize_and_export_pipeline(device_name, in_channels, feature_path, label_p
         print(f"외부 서브프로세스를 호출하여 {device_name} TFLite 변환을 연동합니다.")
         os.makedirs(output_tflite_dir, exist_ok=True)
 
-        # 동적 범위 양자화 모델을 생성하도록 인자를 최소화하여 구조적 에러를 완벽히 배제
         onnx2tf_cmd = [
             onnx2tf_exe, 
             "-i", raw_onnx_path, 
