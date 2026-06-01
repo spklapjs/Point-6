@@ -61,8 +61,8 @@ class TestActivity : AppCompatActivity() {
 
     private fun setupSensors() {
         phoneSensorManager.onSensorDataReceived = { accel, gyro ->
-            if (phoneAccelBuffer.size >= 20) phoneAccelBuffer.removeAt(0)
-            if (phoneGyroBuffer.size >= 20) phoneGyroBuffer.removeAt(0)
+            if (phoneAccelBuffer.size >= 40) phoneAccelBuffer.removeAt(0)
+            if (phoneGyroBuffer.size >= 40) phoneGyroBuffer.removeAt(0)
 
             phoneAccelBuffer.add(accel.clone())
             phoneGyroBuffer.add(gyro.clone())
@@ -75,7 +75,7 @@ class TestActivity : AppCompatActivity() {
         }
 
         spenManager.onSpenDataReceived = { dx, dy ->
-            if (spenDeltaBuffer.size >= 20) spenDeltaBuffer.removeAt(0)
+            if (spenDeltaBuffer.size >= 40) spenDeltaBuffer.removeAt(0)
             spenDeltaBuffer.add(floatArrayOf(dx, dy))
 
             spenFrameCount++
@@ -92,28 +92,28 @@ class TestActivity : AppCompatActivity() {
             return
         }
 
-        if (phoneAccelBuffer.size == 20 && phoneGyroBuffer.size == 20) {
+        if (phoneAccelBuffer.size == 40 && phoneGyroBuffer.size == 40) {
             var maxZ = 0f
             var peakIndex = -1
 
-            for (i in 0 until 20) {
-                val absZ = abs(phoneAccelBuffer[i][1])
+            for (i in 0 until 40) {
+                val absZ = abs(phoneAccelBuffer[i][2])
                 if (absZ > maxZ) {
                     maxZ = absZ
                     peakIndex = i
                 }
             }
 
-            if (maxZ > 50f && peakIndex in 14..17) {
-                val flatAccel = FloatArray(60)
-                val flatGyro = FloatArray(60)
-                for (i in 0 until 20) {
+            if (maxZ > 50f && peakIndex in 31..35) {
+                val flatAccel = FloatArray(120)
+                val flatGyro = FloatArray(120)
+                for (i in 0 until 40) {
                     System.arraycopy(phoneAccelBuffer[i], 0, flatAccel, i * 3, 3)
                     System.arraycopy(phoneGyroBuffer[i], 0, flatGyro, i * 3, 3)
                 }
                 val phoneWindow = PhoneSensorWindow(0L, 0L, flatAccel, flatGyro)
                 gameViewModel.processSensorData(phoneWindow, null)
-                phoneCooldown = 3
+                        phoneCooldown = 4
             }
         }
     }
@@ -124,11 +124,11 @@ class TestActivity : AppCompatActivity() {
             return
         }
 
-        if (spenDeltaBuffer.size == 20) {
+        if (spenDeltaBuffer.size == 40) {
             var maxDelta = 0f
             var peakIndex = -1
 
-            for (i in 0 until 20) {
+            for (i in 0 until 40) {
                 val absX = abs(spenDeltaBuffer[i][0])
                 val absY = abs(spenDeltaBuffer[i][1])
                 val currentMax = if (absX > absY) absX else absY
@@ -138,14 +138,14 @@ class TestActivity : AppCompatActivity() {
                 }
             }
 
-            if (maxDelta > 0.5f && peakIndex in 14..17) {
-                val flatDelta = FloatArray(40)
-                for (i in 0 until 20) {
+            if (maxDelta > 0.5f && peakIndex in 31..35) {
+                val flatDelta = FloatArray(80)
+                for (i in 0 until 40) {
                     System.arraycopy(spenDeltaBuffer[i], 0, flatDelta, i * 2, 2)
                 }
                 val spenWindow = SPenSensorWindow(0L, 0L, flatDelta)
                 gameViewModel.processSensorData(null, spenWindow)
-                spenCooldown = 3
+                        spenCooldown = 4
             }
         }
     }
