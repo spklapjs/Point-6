@@ -32,6 +32,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    // tflite 파일이 압축되어 로드 에러가 발생하는 것을 방지
+    androidResources {
+        noCompress.add("tflite")
+    }
 }
 
 dependencies {
@@ -43,6 +47,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.mpandroidchart)
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
+    // 텐서플로우 라이트 코어 라이브러리 추가
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
