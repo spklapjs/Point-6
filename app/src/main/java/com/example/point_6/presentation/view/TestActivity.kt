@@ -1,6 +1,7 @@
 package com.example.point_6.presentation.view
 
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
@@ -11,11 +12,13 @@ import com.example.point_6.data.sensor.PhoneSensorManager
 import com.example.point_6.data.sensor.SpenManager
 import com.spklapjs.point_6.data.inference.SmartphoneInferenceEngine
 import com.spklapjs.point_6.data.inference.SPenInferenceEngine
+import com.example.point_6.domain.model.DrumType
 import com.example.point_6.domain.model.PhoneSensorWindow
 import com.example.point_6.domain.model.SPenSensorWindow
 import com.example.point_6.domain.usecase.GetInferenceUseCase
 import com.example.point_6.presentation.feedback.AudioEngine
 import com.example.point_6.presentation.viewmodel.GameViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -37,12 +40,24 @@ class TestActivity : AppCompatActivity() {
     private var spenCooldown = 0
 
     private lateinit var tvResult: TextView
+    private lateinit var highlightCymbal1: View
+    private lateinit var highlightCymbal2: View
+    private lateinit var highlightTom1: View
+    private lateinit var highlightTom2: View
+    private lateinit var highlightSnare: View
+    private lateinit var highlightHihat: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_test)
 
         tvResult = findViewById(R.id.tvResult)
+        highlightCymbal1 = findViewById(R.id.highlightCymbal1)
+        highlightCymbal2 = findViewById(R.id.highlightCymbal2)
+        highlightTom1 = findViewById(R.id.highlightTom1)
+        highlightTom2 = findViewById(R.id.highlightTom2)
+        highlightSnare = findViewById(R.id.highlightSnare)
+        highlightHihat = findViewById(R.id.highlightHihat)
 
         val phoneEngine = SmartphoneInferenceEngine(this)
         val spenEngine = SPenInferenceEngine(this)
@@ -161,15 +176,34 @@ class TestActivity : AppCompatActivity() {
 
                 if (phoneDrum != null) {
                     audioEngine.play(phoneDrum)
+                    showHighlight(phoneDrum)
                 }
                 if (spenDrum != null) {
                     audioEngine.play(spenDrum)
+                    showHighlight(spenDrum)
                 }
 
                 val phoneResult = phoneDrum?.name ?: "None"
                 val spenResult = spenDrum?.name ?: "None"
                 tvResult.text = "Phone: $phoneResult \nS-Pen: $spenResult"
             }
+        }
+    }
+
+    private fun showHighlight(drumType: DrumType) {
+        val targetView = when (drumType) {
+            DrumType.CYMBAL1 -> highlightCymbal1
+            DrumType.CYMBAL2 -> highlightCymbal2
+            DrumType.TOM1 -> highlightTom1
+            DrumType.TOM2 -> highlightTom2
+            DrumType.SNARE -> highlightSnare
+            DrumType.HI_HAT -> highlightHihat
+        }
+
+        lifecycleScope.launch {
+            targetView.visibility = View.VISIBLE
+            delay(100)
+            targetView.visibility = View.INVISIBLE
         }
     }
 
