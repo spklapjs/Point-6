@@ -55,3 +55,20 @@ The core concept is the dual-model parallel inference and the implementation of 
 * Week 3: Designing and training two independent CNN-LSTM models for the smartphone and S-Pen.
 * Week 4: Applying model pruning and quantization and integrating both models into the Android parallel inference engine.
 * Week 5: Conducting system integration tests, evaluating simultaneous strike latency, and preparing the final demonstration.
+
+---
+
+### 6. App Execution Guide
+- Install the provided app-debug.apk on a Samsung Galaxy smartphone.
+- Grant the required permissions including Bluetooth, Location, and High Sampling Rate Sensors upon launch.
+- Tap START DRUM on the main screen to enter the Air Drum demo mode.
+- Hold the smartphone in one hand and the S-Pen in the other, and strike the air to play.
+- Note: The S-Pen Bluetooth connection process via the SDK may take some time to establish after entering the test screen. Please wait a moment for the connection to complete before striking with the S-Pen.
+- ---
+### 7. Page Descriptions
+- Main Activity: The home screen. Provides the START DRUM button to enter the real-time inference demo and a top-right line chart icon to access the data collection logger(Logger Activity).
+- Test Activity: The real-time free-play air drum screen. Displays six virtual drum zones. Striking the air triggers a red border highlight around the recognized drum and plays the corresponding sound within 100ms latency. Inference results for both devices are displayed at the bottom.
+- Logger Activity: A developer tool used to stream, label, and collect raw sensor data continuously into CSV files for AI model training. And this activity has live stream visualization.
+- ---
+### 8. Known Limitations
+- While the optimized models achieved high validation accuracy (87 percent for the smartphone and 96 percent for the S-Pen) during offline training, the real-world inference accuracy in the live application is noticeably lower than originally planned. This degradation is mainly due to the sliding window capturing unconstrained preparatory motions and random noise during continuous streaming, coupled with a limited amount of training dataset. Improving real-time generalization accuracy remains a primary task for future development.
